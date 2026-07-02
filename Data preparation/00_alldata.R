@@ -1,4 +1,4 @@
-#Script for all the raw cleaned data sheets without errors
+#Script for all the raw cleaned data sheets without errors + code for transferring the data sheets to google sheets
 rm(list=ls())
 
 library(readr)
