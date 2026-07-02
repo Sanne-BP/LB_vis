@@ -1,8 +1,9 @@
-#Script for all the raw cleaned data sheets
+#Script for all the raw cleaned data sheets without errors
 rm(list=ls())
 
 library(readr)
 
+#THIS IS DATA WITH ERRORS, BELOW IS CORRECT DATA:
 # #the raw data from EventMeasure:
 # all_point_measurements <- read_csv("Data/All Point measurements.csv", skip = 4)
 # view(all_point_measurements)
