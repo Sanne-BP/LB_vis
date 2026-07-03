@@ -1,0 +1,27 @@
+"Code","Sampling period","Date","Site","Treatment","Camera no.","TapeReader","Parupeneus.spilurus","Omobranchus.rotundiceps","Acanthopagrus.australis","Gerres.subfasciatus","Omobranchus.anolius","Girella.tricuspidata","Scobinichthys.granulatus","Monodactylus.argenteus","Meuschenia.trachylepis","Trachinops.taeniatus","Bites"
+"EP_RS2_A1_18June2025","Baseline 2","18/06/2025","Ellery Punt","Rocky shore 2","A1","SBP",5,0,0,0,0,0,0,0,0,0,5
+"EP_RS2_B1_18June2025","Baseline 2","18/06/2025","Ellery Punt","Rocky shore 2","B1","SBP",0,2,0,0,0,0,0,0,0,0,2
+"EP_RS2_B7_20Apr2026","6 months","20/04/2026","Ellery Punt","Rocky shore 2","B7","SBP",1,0,0,0,0,0,0,0,0,0,1
+"SW_CON1_A8_18June2025","Baseline 2","18/06/2025","Spit West","Control 1","A8","SBP",0,0,30,0,0,0,0,0,0,0,30
+"SW_CON1_ER-M2_B2_20Apr2026","6 months","20/04/2026","Spit West","Control 1","B2","SBP",0,0,0,21,0,0,0,0,0,0,21
+"SW_CON2_B7_18June2025","Baseline 2","18/06/2025","Spit West","Control 2","B7","SBP",0,0,1,0,0,0,0,0,0,0,1
+"SW_CON2_ER-M5_A6_20Apr2026","6 months","20/04/2026","Spit West","Control 2","A6","SBP",0,0,0,0,7,0,0,0,0,0,7
+"SW_MOD_B10_18June2025","Baseline 2","18/06/2025","Spit West","Modified","B10","SBP",0,0,10,0,0,0,0,0,0,0,10
+"SW_MOD_B2_18June2025","Baseline 2","18/06/2026","Spit West","Modified","B2","SBP",0,0,5,0,0,322,0,0,0,0,327
+"SW_MOD_ER-M1_B4_30Apr2026","6 months","30/04/2026","Spit West","Modified Existing Revetment","B4","SBP",0,0,0,0,0,7,5,0,0,0,12
+"SW_MOD_ER-M2_B3_01May2026","6 months","01/05/2026","Spit West","Modified Existing Revetment","B3","SBP",0,0,15,0,0,1,3,0,0,0,19
+"SW_MOD_ER-M3_A4_20Apr2026","6 months","20/04/2026","Spit West","Modified Existing Revetment","A4","SBP",0,0,1,0,0,0,1,0,0,0,2
+"SW_MOD_ER-M3_A8_01May2026","6 months","01/05/2026","Spit West","Modified Existing Revetment","A8","SBP",0,0,3,0,0,6,0,1,0,0,10
+"SW_MOD_ER-M3_A9_30Apr2026","6 months","30/04/2026","Spit West","Modified Existing Revetment","A9","SBP",0,0,64,0,0,32,0,0,0,0,96
+"SW_MOD_ER-M4_A1_30Apr2026","6 months","30/04/2026","Spit West","Modified Existing Revetment","A1","SBP",0,0,9,0,0,71,8,0,0,0,88
+"SW_MOD_ER-M4_B8_20Apr2026","6 months","20/04/2026","Spit West","Modified Existing Revetment","B8","SBP",0,0,2,0,0,0,3,0,0,0,5
+"SW_MOD_ER-M5_B4_20Apr2026","6 months","20/04/2026","Spit West","Modified Existing Revetment","B4","SBP",0,0,3,0,0,0,1,0,0,0,4
+"SW_MOD_LB-M2_A7_30Apr2026","6 months","30/04/2026","Spit West","Modified Living Boulder","A7","SBP",0,0,0,0,0,5,12,0,0,0,17
+"SW_MOD_LB-M2_B1_20Apr2026","6 months","20/04/2026","Spit West","Modified Living Boulder","B1","SBP",0,0,0,0,0,5,0,0,3,1,9
+"SW_MOD_LB-M3_A2_01May2026","6 months","01/05/2026","Spit West","Modified Living Boulder","A2","SBP",0,0,20,0,0,1,0,0,0,0,21
+"SW_MOD_LB-M3_B2_30Apr2026","6 months","30/04/2026","Spit West","Modified Living Boulder","B2","SBP",0,0,8,0,0,15,0,0,0,0,23
+"SW_MOD_LB-M4_A7_20Apr2026","6 months","20/04/2026","Spit West","Modified Living Boulder","A7","SBP",0,0,0,0,0,0,1,0,0,0,1
+"SW_MOD_LB-M4_B2_01May2026","6 months","01/05/2026","Spit West","Modified Living Boulder","B2","SBP",0,0,5,0,0,22,0,0,0,0,27
+"SW_MOD_LB-M5_A5_20Apr2026","6 months","20/04/2026","Spit West","Modified Living Boulder","A5","SBP",0,0,16,0,0,0,0,0,0,0,16
+"SW_MOD_LB-M5_B7_01May2026","6 months","01/05/2026","Spit West","Modified Living Boulder","B7","SBP",0,0,2,0,0,65,0,0,0,0,67
+"SW_MOD_LB-M5_B8_30Apr2026","6 months","30/04/2026","Spit West","Modified Living Boulder","B8","SBP",0,0,7,0,0,0,0,0,0,0,7

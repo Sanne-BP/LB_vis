@@ -1,0 +1,42 @@
+"Code","Sampling period","Date","Site","Treatment","Camera no.","TapeReader","Omobranchus.rotundiceps","Parupeneus.spilurus","Abudefduf.sexfasciatus","Acanthopagrus.australis","Tetractenos.hamiltoni","Omobranchus.anolius","Favonigobius.exquisitus","Scobinichthys.granulatus","Microcanthus.strigatus","Girella.elevata","Ambassis.spp","Trachinops.taeniatus","Istiblennius.edentulus","Gerres.subfasciatus","Girella.tricuspidata","Mugil.cephalus","Acanthopagrus.butcheri","Favonigobius.lentiginosus","Monodactylus.argenteus","Unidentified","NA.lineolata","Tetractenos.glaber","Achoerodus.viridis","Pseudocaranx.georgianus","Meuschenia.trachylepis","NA.Sparidae","NA.Gobiidae","NA.Ambassidae","NA.Plesiopidae","NA.Monacanthidae","Monacanthus.chinensis","Ambassis.NA","Richness","MaxN"
+"EP_RS2_A1_18June2025","Baseline 2","18/06/2025","Ellery Punt","Rocky shore 2","A1","SBP",1,3,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4,5
+"EP_RS2_A2_20Apr2026","6 months","20/04/2026","Ellery Punt","Rocky shore 2","A2","SBP",0,14,0,4,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4,20
+"EP_RS2_A6_18June2025","Baseline 2","18/06/2025","Ellery Punt","Rocky shore 2","A6","SBP",2,0,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4,4
+"EP_RS2_B1_18June2025","Baseline 2","18/06/2025","Ellery Punt","Rocky shore 2","B1","SBP",2,0,0,2,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4,5
+"EP_RS2_B5_20Apr2026","6 months","20/04/2026","Ellery Punt","Rocky shore 2","B5","SBP",2,11,2,4,0,2,2,1,4,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,10,29
+"EP_RS2_B7_20Apr2026","6 months","20/04/2026","Ellery Punt","Rocky shore 2","B7","SBP",1,9,2,3,0,0,2,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,7,18
+"PB_RS1_B10_20Apr2026","6 months","20/04/2026","Pearl Bay","Rocky shore 1","B10","SBP",0,0,0,1,0,0,1,0,0,0,232,28,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,5,262
+"PB_RS1_B8_18June2025","Baseline 2","18/06/2025","Pearl Bay","Rocky shore 1","B8","SBP",0,0,0,0,0,1,0,0,0,0,41,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,42
+"PB_RS1_B9_20Apr2026","6 months","20/04/2026","Pearl Bay","Rocky shore 1","B9","SBP",0,0,0,1,1,1,1,0,0,0,0,0,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6,7
+"SW_CON1_A8_18June2025","Baseline 2","18/06/2025","Spit West","Control 1","A8","SBP",0,0,0,6,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4,8
+"SW_CON1_B5_18June2025","Baseline 2","18/06/2025","Spit West","Control 1","B5","SBP",0,0,0,2,0,0,0,0,0,0,0,0,0,12,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4,15
+"SW_CON1_ER-M1_B3_20Apr2026","6 months","20/04/2026","Spit West","Control 1","B3","SBP",0,0,0,11,0,2,0,0,0,0,361,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4,374
+"SW_CON1_ER-M2_B2_20Apr2026","6 months","20/04/2026","Spit West","Control 1","B2","SBP",0,0,0,4,0,1,0,0,0,0,359,0,0,3,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6,368
+"SW_CON1_ER-M4_A1-20Apr2026","6 months","20/04/2026","Spit West","Control 1","A1","SBP",0,0,0,3,0,1,1,0,0,0,296,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,5,301
+"SW_CON2_A5_18June2025","Baseline 2","18/06/2025","Spit West","Control 2","A5","SBP",0,0,0,1,1,1,0,0,0,0,11,16,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6,30
+"SW_CON2_B3_18June2025","Baseline 2","18/06/2025","Spit West","Control 2","B3","SBP",0,0,0,3,0,1,0,0,0,0,7,23,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6,35
+"SW_CON2_B7_18June2025","Baseline 2","18/06/2025","Spit West","Control 2","B7","SBP",0,0,0,3,0,0,1,0,0,0,1,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6,7
+"SW_CON2_ER-M2_B6_20Apr2026","6 months","20/04/2026","Spit West","Control 2","B6","SBP",0,0,0,3,0,1,1,0,0,0,0,0,0,4,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6,11
+"SW_CON2_ER-M4_A10_20Apr2026","6 months","20/04/2026","Spit West","Control 2","A10","SBP",0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,2
+"SW_CON2_ER-M5_A6_20Apr2026","6 months","20/04/2026","Spit West","Control 2","A6","SBP",0,0,0,3,0,2,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,5,7
+"SW_MOD_B10_18June2025","Baseline 2","18/06/2025","Spit West","Modified","B10","SBP",0,0,0,2,0,1,0,0,0,0,0,0,0,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,5,5
+"SW_MOD_B2_18June2025","Baseline 2","18/06/2026","Spit West","Modified","B2","SBP",0,0,0,2,0,0,1,0,0,0,0,0,1,0,4,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6,10
+"SW_MOD_B6_18June2025","Baseline 2","18/06/2025","Spit West","Modified","B6","SBP",0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,1
+"SW_MOD_ER-M1_B4_30Apr2026","6 months","30/04/2026","Spit West","Modified Existing Revetment","B4","SBP",0,0,0,3,0,0,1,2,0,0,103,18,0,0,5,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,9,134
+"SW_MOD_ER-M2_B3_01May2026","6 months","01/05/2026","Spit West","Modified Existing Revetment","B3","SBP",1,1,0,3,0,0,1,1,1,0,35,61,0,0,4,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,11,109
+"SW_MOD_ER-M3_A4_20Apr2026","6 months","20/04/2026","Spit West","Modified Existing Revetment","A4","SBP",1,0,0,3,0,1,0,1,0,0,52,42,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,9,102
+"SW_MOD_ER-M3_A8_01May2026","6 months","01/05/2026","Spit West","Modified Existing Revetment","A8","SBP",0,0,0,3,0,1,0,0,0,0,246,11,0,0,3,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,7,266
+"SW_MOD_ER-M3_A9_30Apr2026","6 months","30/04/2026","Spit West","Modified Existing Revetment","A9","SBP",0,0,0,4,0,1,0,1,1,0,205,16,0,0,3,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,9,232
+"SW_MOD_ER-M4_A1_30Apr2026","6 months","30/04/2026","Spit West","Modified Existing Revetment","A1","SBP",0,0,0,3,0,1,0,2,0,0,123,5,0,0,4,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,8,139
+"SW_MOD_ER-M4_B8_20Apr2026","6 months","20/04/2026","Spit West","Modified Existing Revetment","B8","SBP",0,0,0,5,0,1,0,1,0,0,0,16,0,0,1,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,8,26
+"SW_MOD_ER-M5_B4_01May2026","6 months","01/05/2026","Spit West","Modified Existing Revetment","B4","SBP",1,0,0,2,0,0,1,0,0,0,25,18,0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,8,49
+"SW_MOD_ER-M5_B4_20Apr2026","20:50","22:40","6 months","20/04/2026","Spit West","SBP",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,1,14,2,1,0,0,6,20
+"SW_MOD_LB-M2_A7_30Apr2026","6 months","30/04/2026","Spit West","Modified Living Boulder","A7","SBP",0,0,0,4,0,0,0,1,2,0,108,19,0,1,4,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,1,0,11,142
+"SW_MOD_LB-M2_B1_20Apr2026","6 months","20/04/2026","Spit West","Modified Living Boulder","B1","SBP",0,2,0,3,0,1,0,0,1,0,0,10,0,0,4,1,0,0,0,0,0,0,0,1,2,0,0,0,0,0,0,0,10,25
+"SW_MOD_LB-M3_A2_01May2026","6 months","01/05/2026","Spit West","Modified Living Boulder","A2","SBP",0,0,0,4,0,1,1,0,0,0,110,45,0,0,5,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,8,167
+"SW_MOD_LB-M3_B2_30Apr2026","6 months","30/04/2026","Spit West","Modified Living Boulder","B2","SBP",0,0,0,4,0,1,1,0,1,0,64,33,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,8,106
+"SW_MOD_LB-M4_A7_20Apr2026","6 months","20/04/2026","Spit West","Modified Living Boulder","A7","SBP",0,0,0,6,0,0,1,1,0,0,234,46,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,67,8,356
+"SW_MOD_LB-M4_B2_01May2026","6 months","01/05/2026","Spit West","Modified Living Boulder","B2","SBP",0,0,0,3,0,1,0,0,0,0,86,8,0,0,3,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,7,103
+"SW_MOD_LB-M5_A5_20Apr2026","6 months","20/04/2026","Spit West","Modified Living Boulder","A5","SBP",1,0,0,4,0,1,0,1,0,0,123,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,18,9,150
+"SW_MOD_LB-M5_B7_01May2026","6 months","01/05/2026","Spit West","Modified Living Boulder","B7","SBP",0,0,0,4,1,1,0,0,1,0,143,32,0,0,6,0,1,0,1,0,0,1,0,0,0,0,0,0,0,0,0,0,11,191
+"SW_MOD_LB-M5_B8_30Apr2026","6 months","30/04/2026","Spit West","Modified Living Boulder","B8","SBP",1,0,0,4,0,1,0,0,0,0,143,7,0,2,3,0,0,0,1,0,0,1,0,0,0,0,0,0,0,0,0,0,10,163
