@@ -1,4 +1,4 @@
-#Sub question 1: temporal - before versus after installment of LB
+#Sub Question 1: temporal - before versus after installment of LB
 #How do fish communities change over time following the installment of LB, compared to control revetments and natural rocky shores?
 
 rm(list=ls())
