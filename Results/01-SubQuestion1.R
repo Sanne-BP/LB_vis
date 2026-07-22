@@ -8,48 +8,82 @@ library(viridis)
 #Importing data from google sheets:
 MaxnData <- read_csv("https://docs.google.com/spreadsheets/d/e/2PACX-1vQb66D4c8m-XdTybthjskUdl-eITzveZioAnkONlgf1eVb515iZXQweaDOZ9cljvJKoh1DjV6cyxYme/pub?gid=484656251&single=true&output=csv")
 
+ObsData <- read.csv("https://docs.google.com/spreadsheets/d/e/2PACX-1vQb66D4c8m-XdTybthjskUdl-eITzveZioAnkONlgf1eVb515iZXQweaDOZ9cljvJKoh1DjV6cyxYme/pub?gid=667551629&single=true&output=csv")
+
 #Filter data for only the relevant dates: 18/06/2025 and 20/04/2026
-sp_data <- MaxnData |>
+sp_data_Maxn <- MaxnData |>
   filter(Date %in% c("18/06/2025", "20/04/2026"))
 
-
+sp_data_Obs <- ObsData |>
+  filter(Date %in% c("18/06/2025", "20/04/2026"))
 
 ##################################################################
 #First look at species richness, abundance, community composition:
 
 #SPECIES RICHNESS:
-richness <- sp_data |>
-  select(c("Sampling period", "Date", "Site", "Treatment", "Richness")) |>
-  mutate(`Sampling period` = factor(`Sampling period`, levels = c("Baseline 2", "6 months")))
+richness <- sp_data_Obs |>
+  select(c("Sampling.period", "Date", "Site", "Treatment", "Richness")) |>
+  mutate(`Sampling.period` = factor(`Sampling.period`, levels = c("Baseline 2", "6 months")))
 
-
-ggplot(richness, aes(x = `Sampling period`, y = Richness, fill = Treatment)) +
+ggplot(richness, aes(x = Treatment, y = Richness, fill = Treatment)) +
   geom_boxplot(alpha = 0.6) +
-  #geom_jitter(width = 0.2, height = 0, alpha = 0.6)+
-  labs(title = "Species Richness before versus after installment of LB",
-     x = "Sampling Period",
-     y = "Species Richness") +
+  facet_wrap(~Sampling.period)+
+  scale_x_discrete(labels = c("Control 1" = "C1",
+                              "Control 2" = "C2",
+                              "Modified" = "MOD",
+                              "Modified Existing Revetment" = "MOD-ER",
+                              "Modified Living Boulder" = "MOD-LB",
+                              "Rocky shore 1" = "RS1",
+                              "Rocky shore 2" = "RS2")) +
+  labs(title = "Species richness: before versus after instalment of LB",
+       x = "Treatment", y = "Species richness") +
   theme_bw()+
   scale_fill_viridis_d(option = "viridis")
 
-ggplot(richness, aes(x = Treatment, y = Richness)) +
-  geom_boxplot() +
-  facet_wrap(~`Sampling period`)+
-  labs(title = "Species Richness before versus after installment of LB",
-       x = "Sampling Period",
-       y = "Species Richness") +
-  theme_minimal()
+ggsave("plots/SQ1_richness.png", width = 11, height = 6, dpi = 300, bg = "white")
 
-ggplot(richness, aes(x = Site, y = Richness, fill = Treatment)) +
+
+#As this is a site scale comparison, I will let R randomly select 3 datapoints for the MOD site of 6 months so it can be compared to the before MOD site.
+set.seed(123)  # For reproducibility
+
+richness_pooled_mod <- richness %>%
+  mutate(Treatment_pooled = case_when(
+    Treatment %in% c("Modified Existing Revetment", "Modified Living Boulder") ~ "Modified",
+    TRUE ~ Treatment),
+  `Sampling.period` = factor(`Sampling.period`, levels = c("Baseline 2", "6 months")))
+
+# Separate the pooled "Modified, 6 months" rows from everything else
+modified_6mo <- richness_pooled_mod %>%
+  filter(Treatment_pooled == "Modified", `Sampling.period` == "6 months")
+
+other_rows <- richness_pooled_mod %>%
+  filter(!(Treatment_pooled == "Modified" & `Sampling.period` == "6 months"))
+
+# Randomly sample 3 of the 6 pooled Modified rows
+modified_6mo_sampled <- modified_6mo %>% slice_sample(n = 3)
+
+# Recombine
+richness_final <- bind_rows(other_rows, modified_6mo_sampled)
+
+richness_final %>% count(Treatment_pooled, `Sampling.period`)  # check: Modified should now show 3/3
+
+#plot again:
+ggplot(richness_final, aes(x = Treatment_pooled, y = Richness, fill = Treatment_pooled)) +
   geom_boxplot(alpha = 0.6) +
-  facet_wrap(~`Sampling period`)+
-  labs(title = "Species Richness before versus after installment of LB",
-       x = "Sampling Period",
-       y = "Species Richness") +
+  facet_wrap(~Sampling.period)+
+  scale_x_discrete(labels = c("Control 1" = "C1",
+                              "Control 2" = "C2",
+                              "Modified" = "MOD",
+                              "Modified Existing Revetment" = "MOD-ER",
+                              "Modified Living Boulder" = "MOD-LB",
+                              "Rocky shore 1" = "RS1",
+                              "Rocky shore 2" = "RS2")) +
+  labs(title = "Species richness: before versus after instalment of LB",
+       x = "Treatment", y = "Species richness") +
   theme_bw()+
   scale_fill_viridis_d(option = "viridis")
 
-
+ggsave("plots/SQ1_richness2.png", width = 11, height = 6, dpi = 300, bg = "white")
 
 
 
