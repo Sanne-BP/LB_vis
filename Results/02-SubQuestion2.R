@@ -8,53 +8,61 @@ library(viridis)
 #Importing data from google sheets:
 MaxnData <- read_csv("https://docs.google.com/spreadsheets/d/e/2PACX-1vQb66D4c8m-XdTybthjskUdl-eITzveZioAnkONlgf1eVb515iZXQweaDOZ9cljvJKoh1DjV6cyxYme/pub?gid=484656251&single=true&output=csv")
 
+ObsData <- read.csv("https://docs.google.com/spreadsheets/d/e/2PACX-1vQb66D4c8m-XdTybthjskUdl-eITzveZioAnkONlgf1eVb515iZXQweaDOZ9cljvJKoh1DjV6cyxYme/pub?gid=667551629&single=true&output=csv")
+
+
 #SQ2 focuses on after installation only, therefore we can filter out the baseline 2, which is the 2025 data: 18/06/2025. However, we can also filter out 30/04/2026 and 01/05/2026, because on these dates only videos for the modified sites were watched which would enlarge the sample size for those sites very much. So that leaves us with 20/04/2026!
 
-after_data <- MaxnData |>
-  filter(Date == "20/04/2026")
+#after_data <- MaxnData |>
+#  filter(Date == "20/04/2026")
 
+after_data <- ObsData |>
+  filter(Date == "20/04/2026")
 
 ##################################################################
 #First look at species richness, abundance, community composition:
 
 #SPECIES RICHNESS:
 richness <- after_data |>
-  select(c("Sampling period", "Date", "Site", "Treatment", "Richness"))
+  select(c("Sampling.period", "Date", "Site", "Treatment", "Richness"))
 
 ggplot(richness, aes(x = Treatment, y = Richness, fill = Treatment)) +
   geom_boxplot(alpha = 0.6) +
+  scale_x_discrete(labels = c("Control 1" = "C1",
+                              "Control 2" = "C2",
+                              "Modified Existing Revetment" = "MOD-ER",
+                              "Modified Living Boulder" = "MOD-LB",
+                              "Rocky shore 1" = "RS1",
+                              "Rocky shore 2" = "RS2")) +
   labs(title = "Species Richness after installment of LB",
        x = "Sampling Period",
        y = "Species Richness") +
   theme_bw()+
   scale_fill_viridis_d(option = "viridis")
 
-
+ggsave("plots/SQ2_richness.png", width = 7, height = 4, dpi = 300, bg = "white")
 
 
 
 #SPECIES ABUNDANCE:
 abundance <- after_data |>
-  select(c("Sampling period", "Date", "Site", "Treatment", "MaxN"))
+  select(c("Sampling.period", "Date", "Site", "Treatment", "Observations"))
 
-ggplot(abundance, aes(x = Treatment, y = MaxN, fill = Treatment)) +
+ggplot(abundance, aes(x = Treatment, y = Observations, fill = Treatment)) +
   geom_boxplot(alpha = 0.6) +
+  scale_x_discrete(labels = c("Control 1" = "C1",
+                              "Control 2" = "C2",
+                              "Modified Existing Revetment" = "MOD-ER",
+                              "Modified Living Boulder" = "MOD-LB",
+                              "Rocky shore 1" = "RS1",
+                              "Rocky shore 2" = "RS2")) +
   labs(title = "Species abundance after installment of LB",
        x = "Sampling Period",
        y = "Species abundance") +
   theme_bw()+
   scale_fill_viridis_d(option = "viridis")
 
-#Again there is a  very high count of ambassis species, the data is a bit right-skewed so log transformation for the y-axis:
-ggplot(abundance, aes(x = Treatment, y = MaxN, fill = Treatment)) +
-  geom_boxplot(alpha = 0.6) +
-  scale_y_log10() +
-  labs(title = "Species abundance after installment of LB",
-       x = "Sampling Period",
-       y = "Species abundance") +
-  theme_bw()+
-  scale_fill_viridis_d(option = "viridis")
-
+ggsave("plots/SQ2_abundance.png", width = 7, height = 4, dpi = 300, bg = "white")
 
 
 
