@@ -8,13 +8,17 @@ library(viridis)
 #Importing data from google sheets:
 MaxnData <- read_csv("https://docs.google.com/spreadsheets/d/e/2PACX-1vQb66D4c8m-XdTybthjskUdl-eITzveZioAnkONlgf1eVb515iZXQweaDOZ9cljvJKoh1DjV6cyxYme/pub?gid=484656251&single=true&output=csv")
 
+ObsData <- read.csv("https://docs.google.com/spreadsheets/d/e/2PACX-1vQb66D4c8m-XdTybthjskUdl-eITzveZioAnkONlgf1eVb515iZXQweaDOZ9cljvJKoh1DjV6cyxYme/pub?gid=667551629&single=true&output=csv")
+
 #SQ3 focuses on the within site comparison only, specifically the modified site after the installation of the LBs. Therefore, we can filter out the 2025 data, which leaves us only with the 2026 data. However for this SQ we only focus on the modified site, so the other sites/treatments can be filtered out.
 
-mod_data <- MaxnData |>
+#mod_data <- MaxnData |>
+#  filter(Date %in% c("20/04/2026", "30/04/2026", "01/05/2026")) |>
+#  filter(Treatment %in% c("Modified Existing Revetment", "Modified Living Boulder"))
+
+mod_data <- ObsData |>
   filter(Date %in% c("20/04/2026", "30/04/2026", "01/05/2026")) |>
   filter(Treatment %in% c("Modified Existing Revetment", "Modified Living Boulder"))
-
-
 
 
 ##################################################################
@@ -22,34 +26,33 @@ mod_data <- MaxnData |>
 
 #SPECIES RICHNESS:
 richness <- mod_data |>
-  select(c("Sampling period", "Date", "Site", "Treatment", "Richness"))
+  select(c("Sampling.period", "Date", "Site", "Treatment", "Richness"))
 
 ggplot(richness, aes(x = Treatment, y = Richness, fill = Treatment)) +
   geom_boxplot(alpha = 0.6) +
-  geom_jitter(width = 0.2, height = 0, alpha = 0.6)+
   labs(title = "Species Richness within the modified site",
        x = "Sampling Period",
        y = "Species Richness") +
   theme_bw()+
   scale_fill_viridis_d(option = "viridis")
 
-
+ggsave("plots/SQ3_richness.png", width = 7, height = 4, dpi = 300, bg = "white")
 
 
 
 #SPECIES ABUNDANCE:
 abundance <- mod_data |>
-  select(c("Sampling period", "Date", "Site", "Treatment", "MaxN"))
+  select(c("Sampling.period", "Date", "Site", "Treatment", "Observations"))
 
-ggplot(abundance, aes(x = Treatment, y = MaxN, fill = Treatment)) +
+ggplot(abundance, aes(x = Treatment, y = Observations, fill = Treatment)) +
   geom_boxplot(alpha = 0.6) +
-  geom_jitter(width = 0.2, height = 0, alpha = 0.6)+
   labs(title = "Species abundance within the modified site",
        x = "Sampling Period",
        y = "Species abundance") +
   theme_bw()+
   scale_fill_viridis_d(option = "viridis")
 
+ggsave("plots/SQ3_abundance.png", width = 7, height = 4, dpi = 300, bg = "white")
 
 
 
@@ -122,7 +125,12 @@ permanova_within
 
 #Treatment explains only 6.5% of the variation in community composition (R² = 0.065), and this is not statistically significant (p = 0.334). So fish community composition on the rockpools doesn't look  different from the community on the surrounding revetment.
 
-#Feeding rates --> are fish actively feeding more around LB? More bites = more foraging activity = LB functioning as foraging habitat
+
+
+
+
+
+#FEEDING RATES --> are fish actively feeding more around LB? More bites = more foraging activity = LB functioning as foraging habitat
 FeedData <- read_csv("https://docs.google.com/spreadsheets/d/e/2PACX-1vQb66D4c8m-XdTybthjskUdl-eITzveZioAnkONlgf1eVb515iZXQweaDOZ9cljvJKoh1DjV6cyxYme/pub?gid=733876966&single=true&output=csv")
 
 bites <- FeedData |>
@@ -131,29 +139,14 @@ bites <- FeedData |>
 
 ggplot(bites, aes(x = Treatment, y = Bites, fill = Treatment)) +
   geom_boxplot(alpha = 0.6) +
-  geom_jitter(width = 0.2, height = 0, alpha = 0.6)+
   labs(title = "Feeding behaviour within the modified site",
        x = "Sampling Period",
        y = "Number of bites") +
   theme_bw()+
   scale_fill_viridis_d(option = "viridis")
 
+ggsave("plots/SQ3_feedbehav.png", width = 7, height = 4, dpi = 300, bg = "white")
 
 
 
-#Number of observations --> are fish observed more frequently at Living Boulders than on the surrounding revetment?
-ObsData <- read_csv("https://docs.google.com/spreadsheets/d/e/2PACX-1vQb66D4c8m-XdTybthjskUdl-eITzveZioAnkONlgf1eVb515iZXQweaDOZ9cljvJKoh1DjV6cyxYme/pub?gid=667551629&single=true&output=csv")
-
-observations <- ObsData |>
-  filter(Date %in% c("20/04/2026", "30/04/2026", "01/05/2026")) |>
-  filter(Treatment %in% c("Modified Existing Revetment", "Modified Living Boulder"))
-
-ggplot(observations, aes(x = Treatment, y = Observations, fill = Treatment)) +
-  geom_boxplot(alpha = 0.6) +
-  geom_jitter(width = 0.2, height = 0, alpha = 0.6)+
-  labs(title = "Habitat use within the modified site",
-       x = "Sampling Period",
-       y = "Number of observations") +
-  theme_bw()+
-  scale_fill_viridis_d(option = "viridis")
 
