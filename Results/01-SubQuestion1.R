@@ -77,7 +77,7 @@ ggplot(sq1_data, aes(x = Treatment_pooled, y = Richness, fill = Treatment_pooled
   theme_bw(base_size = 11) +
   scale_fill_manual(values = treatment_colors, name = "Treatment")
 
-ggsave("plots/SQ1_richness.png", width = 11, height = 6, dpi = 300, bg = "white")
+ggsave("plots/SQ1_richness.png", width = 7, height = 4, dpi = 300, bg = "white")
 
 
 
@@ -95,7 +95,23 @@ ggplot(sq1_data, aes(x = Treatment_pooled, y = Observations, fill = Treatment_po
   theme_bw(base_size = 11) +
   scale_fill_manual(values = treatment_colors, name = "Treatment")
 
-ggsave("plots/SQ1_abundance.png", width = 11, height = 6, dpi = 300, bg = "white")
+ggsave("plots/SQ1_abundance.png", width = 7, height = 4, dpi = 300, bg = "white")
+
+#Pattern with the schooling event of Ambassis species, and now the pattern without them:
+
+sq1_data <- sq1_data |>
+  mutate(Observations_no_Ambassis = Observations - Ambassis.spp)
+
+ggplot(sq1_data, aes(x = Treatment_pooled, y = Observations_no_Ambassis, fill = Treatment_pooled)) +
+  geom_boxplot(alpha = 0.6) +
+  facet_wrap(~Sampling.period) +
+  scale_x_discrete(labels = treatment_labels) +
+  labs(title = "Species abundance: before versus after installment of LB excluding Ambassis sp.",
+       x = "Treatment", y = "Species abundance") +
+  theme_bw(base_size = 11) +
+  scale_fill_manual(values = treatment_colors, name = "Treatment")
+
+ggsave("plots/SQ1_abundanceEXCLambassis.png", width = 7, height = 4, dpi = 300, bg = "white")
 
 ## Does overall fish activity/detectability change after installment, and does that change differ by treatment? A rising total at Modified but not at the Control/Rocky shore treatments would be an early signal that Living Boulders are attracting fish. Summed (not averaged) Observations per Treatment x Sampling.period group, using the same Observations column as the abundance plot above - this is a different SUMMARY of the same underlying data, not a different variable.
 
