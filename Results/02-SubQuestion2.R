@@ -359,84 +359,165 @@ ggsave("plots/SQ2_speciescomp_noAmbassis.png", width = 9, height = 5, dpi = 300,
 
 
 
+##################################################################
+
+#FEEDING RATES:
+
+FeedData <- read_csv("https://docs.google.com/spreadsheets/d/e/2PACX-1vQb66D4c8m-XdTybthjskUdl-eITzveZioAnkONlgf1eVb515iZXQweaDOZ9cljvJKoh1DjV6cyxYme/pub?gid=733876966&single=true&output=csv")
+
+video_ids <- sq2_data |>
+  distinct(Code, Treatment_pooled)
+
+bites <- video_ids |>
+  left_join(FeedData |> select(Code, Bites), by = "Code") |>
+  mutate(Bites = replace_na(Bites, 0))
+
+ggplot(bites, aes(x = Treatment_pooled, y = Bites, fill = Treatment_pooled)) +
+  geom_boxplot(alpha = 0.6) +
+  scale_x_discrete(labels = treatment_labels) +
+  scale_fill_manual(values = treatment_colors, labels = treatment_labels) +
+  labs(title = "Feeding behaviour (intensity) after installment of LB",
+       subtitle = "Total bites per video, zero-filled for videos with no feeding observed",
+       x = "Treatment", y = "Number of bites") +
+  theme_bw(base_size = 11)
+
+ggsave("plots/SQ2_feedbehav.png", width = 7, height = 4, dpi = 300, bg = "white")
 
 
 
-# 1. Identify species columns (everything that isn't metadata)
-non_species_cols <- c("Code", "Sampling period", "Date", "Site", "Treatment",
-                      "Camera no.", "TapeReader", "Richness", "MaxN")
-sp_cols <- setdiff(names(after_data), non_species_cols)
-
-# 2. Build species matrix, remove all-zero rows
-sp_matrix <- after_data |>
-  select(all_of(sp_cols)) |>
-  as.data.frame()
-
-rownames(sp_matrix) <- after_data$Code
-
-zero_rows <- rowSums(sp_matrix) == 0
-sp_matrix_nz <- sp_matrix[!zero_rows, ]
-meta_nz <- after_data[!zero_rows, ]
-
-# 3. Run NMDS
-set.seed(123)
-nmds <- metaMDS(sp_matrix_nz, distance = "bray", k = 2, trymax = 100)
-
-nmds$stress
-#[1] 0.1830469 --> Stress value is <0.2, which is an acceptable fit. Usable for interpretation,  but still have to be cautious.
-
-# Check for NA values in the species matrix
-sum(is.na(sp_matrix_nz))    #[1] 0
-
-# Extract site scores and attach metadata
-nmds_scores <- as.data.frame(scores(nmds, display = "sites"))
-nmds_scores$Treatment <- meta_nz$Treatment
-
-ggplot(nmds_scores, aes(x = NMDS1, y = NMDS2,
-                        colour = Treatment, shape = Treatment)) +
-  geom_point(size = 3) +
-  labs(title = "Community composition: after Living Boulder installation",
-       subtitle = paste0("NMDS, stress = ", round(nmds$stress, 3)),
-       x = "NMDS1", y = "NMDS2") +
-  theme_bw()
-
-#Too few points to calculate an ellipse
 
 
-# Bray-Curtis distance matrix on the same non-zero species matrix used for NMDS
-bray_dist <- vegdist(sp_matrix_nz, method = "bray")
 
-# PERMANOVA: does Site, Treatment, or their interaction explain composition?
-permanova <- adonis2(bray_dist ~ Site * Treatment,
-                     data = meta_nz,
-                     permutations = 999)
 
-permanova
 
-#R2 = 0.618, p = 0.001, so the whole model explains a significant 61.8% of the variation in       community composition.
 
-permanova_terms <- adonis2(bray_dist ~ Site * Treatment,
-                           data = meta_nz,
-                           permutations = 999,
-                           by = "terms")
-permanova_terms
 
-#           Df SumOfSqs      R2      F Pr(>F)
-#Site       2   1.2766 0.23681 3.4079  0.003 **
-#Treatment  3   2.0538 0.38100 3.6552  0.002 **
-#Residual  11   2.0603 0.38219
-#Total     16   5.3907 1.00000
+##################################################################
 
-#Site R2 = 0.23681, p = 0.003, so the effect of Site alone is significant. So, fish communities differ per site. Pearl Bay, Ellery Punt, and Spit West have different fish communities from each other overall.
+#FEEDING FREQUENCY:
+#BehavLongData tags the OCCURRENCE of a feeding event -- how OFTEN fish are seen feeding per
+#video (frequency), a genuinely different metric from Bites above (how MUCH they eat when
+#they do, intensity).
 
-permanova_treatment <- adonis2(bray_dist ~ Treatment,
-                                    data = meta_nz, permutations = 999)
-permanova_treatment
+BehavLongData <- read_csv("https://docs.google.com/spreadsheets/d/e/2PACX-1vQb66D4c8m-XdTybthjskUdl-eITzveZioAnkONlgf1eVb515iZXQweaDOZ9cljvJKoh1DjV6cyxYme/pub?gid=855991795&single=true&output=csv")
 
-#Df SumOfSqs      R2      F Pr(>F)
-#Model     5   3.3304 0.61781 3.5562  0.001 ***
-#Residual 11   2.0603 0.38219
-#Total    16   5.3907 1.00000
+behav_post <- BehavLongData |>
+  mutate(OpCode_norm = normalize_code(OpCode)) |>
+  semi_join(video_ids, by = c("OpCode_norm" = "Code_norm"))
 
-#Treatment R2 = 0.61781, p = 0.001. So treatment significantly explains 61.8% of the variation in fish community composition. Fish communities differ substantially depending on which treatment type you're looking at.
+behav_sums <- behav_post |>
+  group_by(OpCode_norm, Activity) |>
+  summarise(count = sum(count), .groups = "drop")
+
+anti_join(video_ids, behav_sums, by = c("Code_norm" = "OpCode_norm")) |> distinct(Code)
+
+behav_per_video <- video_ids |>
+  crossing(Activity = c("Passing", "Transient", "Feeding")) |>
+  left_join(behav_sums, by = c("Code_norm" = "OpCode_norm", "Activity")) |>
+  mutate(count = replace_na(count, 0))
+
+feeding_events <- behav_per_video |> filter(Activity == "Feeding")
+
+feeding_events <- behav_per_video |> filter(Activity == "Feeding")
+
+ggplot(feeding_events, aes(x = Treatment_pooled, y = count, fill = Treatment_pooled)) +
+  geom_boxplot(alpha = 0.6) +
+  scale_x_discrete(labels = treatment_labels) +
+  scale_fill_manual(values = treatment_colors, labels = treatment_labels) +
+  labs(title = "Feeding frequency after installment of LB",
+       subtitle = "Number of feeding events per video (frequency, not bite count)",
+       x = "Treatment", y = "Number of feeding events", fill = "Treatment") +
+  theme_bw(base_size = 11)
+
+ggsave("plots/SQ2_feedfreq.png", width = 7, height = 4, dpi = 300, bg = "white")
+
+
+
+
+
+
+
+##################################################################
+
+#BEHAVIOUR ACTIVITIES:
+
+BehavLongData <- read_csv("https://docs.google.com/spreadsheets/d/e/2PACX-1vQb66D4c8m-XdTybthjskUdl-eITzveZioAnkONlgf1eVb515iZXQweaDOZ9cljvJKoh1DjV6cyxYme/pub?gid=855991795&single=true&output=csv")
+
+behav_post <- BehavLongData |>
+  mutate(OpCode_norm = normalize_code(OpCode)) |>
+  semi_join(video_ids, by = c("OpCode_norm" = "Code_norm"))
+
+behav_sums <- behav_post |>
+  group_by(OpCode_norm, Activity) |>
+  summarise(count = sum(count), .groups = "drop")
+
+anti_join(video_ids, behav_sums, by = c("Code_norm" = "OpCode_norm")) |> distinct(Code)
+
+behav_per_video <- video_ids |>
+  crossing(Activity = c("Passing", "Transient", "Feeding")) |>
+  left_join(behav_sums, by = c("Code_norm" = "OpCode_norm", "Activity")) |>
+  mutate(count = replace_na(count, 0))
+
+feeding_events <- behav_per_video |> filter(Activity == "Feeding")
+
+ggplot(behav_per_video, aes(x = Treatment_pooled, y = count, fill = Treatment_pooled)) +
+  geom_boxplot(alpha = 0.6) +
+  facet_wrap(~Activity, scales = "free_y") +
+  scale_x_discrete(labels = treatment_labels) +
+  scale_fill_manual(values = treatment_colors, labels = treatment_labels) +
+  labs(title = "Behavioural activity after installment of LB",
+       subtitle = "Passing, Transient, and Feeding events per video",
+       x = "Treatment", y = "Number of events", fill = "Treatment") +
+  theme_bw(base_size = 11)
+
+ggsave("plots/SQ2_behav_overview.png", width = 9, height = 4, dpi = 300, bg = "white")
+
+
+behav_composition <- behav_per_video |>
+  group_by(Treatment_pooled, Activity) |>
+  summarise(total = sum(count), .groups = "drop")
+
+ggplot(behav_composition, aes(x = Treatment_pooled, y = total, fill = Activity)) +
+  geom_col(position = "fill", alpha = 0.85) +
+  scale_x_discrete(labels = treatment_labels) +
+  scale_y_continuous(labels = scales::percent) +
+  scale_fill_viridis_d(option = "viridis") +
+  labs(title = "Behavioural composition after installment of LB",
+       subtitle = "Share of tagged events by activity type, per treatment",
+       x = "Treatment", y = "Proportion of events") +
+  theme_bw(base_size = 11)
+
+ggsave("plots/SQ2_behav_composition.png", width = 7, height = 4, dpi = 300, bg = "white")
+
+#excluding Ambassis species:
+behav_sums_noAmb <- behav_post |>
+  filter(spp != "Ambassis.spp") |>
+  group_by(OpCode_norm, Activity) |>
+  summarise(count = sum(count), .groups = "drop")
+
+behav_per_video_noAmb <- video_ids |>
+  crossing(Activity = c("Passing", "Transient", "Feeding")) |>
+  left_join(behav_sums_noAmb, by = c("Code_norm" = "OpCode_norm", "Activity")) |>
+  mutate(count = replace_na(count, 0))
+
+behav_composition_noAmb <- behav_per_video_noAmb |>
+  group_by(Treatment_pooled, Activity) |>
+  summarise(total = sum(count), .groups = "drop")
+
+ggplot(behav_composition_noAmb, aes(x = Treatment_pooled, y = total, fill = Activity)) +
+  geom_col(position = "fill", alpha = 0.85) +
+  scale_x_discrete(labels = treatment_labels) +
+  scale_y_continuous(labels = scales::percent) +
+  scale_fill_viridis_d(option = "viridis") +
+  labs(title = "Behavioural composition after installment of LB (excluding Ambassis sp.)",
+       subtitle = "Share of tagged events by activity type, per treatment",
+       x = "Treatment", y = "Proportion of events") +
+  theme_bw(base_size = 11)
+
+ggsave("plots/SQ2_behav_composition_noAmbassis.png", width = 7, height = 4, dpi = 300, bg = "white")
+
+
+
+
+
 
