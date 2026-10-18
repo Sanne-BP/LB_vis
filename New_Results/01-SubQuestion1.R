@@ -448,6 +448,61 @@ ggplot(comp_plot, aes(x = Treatment, y = share, fill = Species_group)) +
 ggsave("New_Plots/SQ1_species_composition.png", width = 7, height = 5, dpi = 300, bg = "white")
 
 
+#filtering out the most abundant species "Trachinops.taeniatus", "Girella.tricuspidata" and "Acanthopagrus.australis" to see the composition of the rest of the species
+
+dominant_sp <- c("Trachinops.taeniatus", "Girella.tricuspidata", "Acanthopagrus.australis")
+
+comp_data_rest <- mod_data_post |>
+  pivot_longer(any_of(species_info$Species),
+               names_to = "Species", values_to = "Count") |>
+  filter(!Species %in% dominant_sp) |>          # drop the 3 dominant species
+  # 1. mean count per video, per day
+  group_by(Treatment, Date, Species) |>
+  summarise(day_mean = mean(Count, na.rm = TRUE), .groups = "drop") |>
+  # 2. mean over the days
+  group_by(Treatment, Species) |>
+  summarise(mean_count = mean(day_mean), .groups = "drop") |>
+  # 3. share of the total per treatment (now: share of the REMAINING species)
+  group_by(Treatment) |>
+  mutate(share = mean_count / sum(mean_count)) |>
+  ungroup()
+
+ggplot(comp_data_rest, aes(x = Treatment, y = share, fill = Species)) +
+  geom_col(alpha = 0.85) +
+  scale_x_discrete(labels = treatment_labels) +
+  scale_y_continuous(labels = scales::percent) +
+  scale_fill_viridis_d(option = "viridis",
+                       labels = function(x) str_replace_all(x, "\\.", " ")) +
+  labs(title = "Species composition within the modified site",
+       subtitle = "Excluding the three dominant species (T. taeniatus, G. tricuspidata, A. australis)",
+       x = "Treatment", y = "Share of observations (remaining species)", fill = "Species") +
+  theme_bw() + text_theme +
+  theme(legend.text = element_text(face = "italic"))
+
+comp_data |>
+  filter(mean_count > 0) |>
+  mutate(Species = str_replace_all(Species, "\\.", " "),
+         Species = fct_reorder(Species, mean_count, .fun = sum)) |>
+  ggplot(aes(x = Species, y = mean_count, fill = Treatment)) +
+  geom_col(position = position_dodge(width = 0.8), width = 0.7, alpha = 0.85) +
+  coord_flip() +
+  scale_fill_manual(values = treatment_colors, labels = treatment_labels) +
+  labs(title = "Observations of the less abundant species within the modified site",
+       subtitle = "Excluding the three dominant species; mean of daily averages",
+       x = NULL, y = "Mean number of observations per video", fill = "Treatment") +
+  theme_bw() + text_theme +
+  theme(axis.text.y = element_text(face = "italic"))
+
+ggsave("New_Plots/SQ1_species_obs_rest.png", width = 8, height = 5, dpi = 300, bg = "white")
+
+
+
+
+
+
+
+
+
 
 #Percentages exactly as shown in the plot (top 8 + "Other")
 comp_plot |>
