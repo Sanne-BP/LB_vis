@@ -57,6 +57,10 @@ transects <- litter |>
 
 nrow(transects)   # should be 80
 
+# Between-site comparison: only the existing revetment at MOD (same data as the model in rubbish_stats.R)
+between <- transects |> dplyr::filter(Location != "MOD" | Boulder_type == "REV-B")
+nrow(between)   # should be 60
+
 # Individual items only (no "None" rows)
 items <- litter |> filter(Is_item)
 
@@ -106,7 +110,7 @@ plot_height <- 9    # cm
 # 3. Between sites
 # ---------------------------------------------------------------
 # 3a. Number of items per transect, per site (black diamond = mean)
-ggplot(transects, aes(x = Location, y = n_items, fill = Location)) +
+ggplot(between, aes(x = Location, y = n_items, fill = Location)) +
   geom_boxplot(alpha = 1, outlier.shape = NA) +
   geom_jitter(width = 0.15, height = 0, size = 1.5, alpha = 0.6) +
   scale_fill_manual(values = site_colors) +
@@ -127,7 +131,7 @@ tide_fill <- unlist(lapply(names(site_colors), function(s) {
   setNames(shades, paste(s, names(shades), sep = "."))
 }))
 
-transects_tide <- transects |>
+transects_tide <- between |>
   mutate(Location = factor(Location, levels = site_levels),
          fill_key = paste(Location, Tidal_height, sep = "."))
 
@@ -146,18 +150,18 @@ ggplot(transects_tide, aes(x = Tidal_height, y = n_items, fill = fill_key)) +
 ggsave("Rubbish_Plots/P2_items_per_tidalheight.png", width = plot_width, height = plot_height, units = "cm", dpi = 300, bg = "white")
 
 # 3c. Wet weight per transect, per site (log scale because of the construction-wood outlier)
-ggplot(transects, aes(x = Location, y = weight_g, fill = Location)) +
+ggplot(between, aes(x = Location, y = weight_g, fill = Location)) +
   geom_boxplot(alpha = 1, outlier.shape = NA) +
   geom_jitter(width = 0.15, height = 0, size = 1.5, alpha = 0.6) +
   scale_fill_manual(values = site_colors) +
   scale_x_discrete(labels = site_labels) +
-  scale_y_continuous(trans = "log1p", breaks = c(0, 1, 10, 100, 1000)) +
+  scale_y_continuous(trans = "log1p", breaks = c(0, 10, 100, 1000)) +
   labs(x = "Site", y = "Wet weight per transect (g, log scale)") +
   theme(legend.position = "none")
 ggsave("Rubbish_Plots/P3_weight_per_site.png", width = plot_width, height = plot_height, units = "cm", dpi = 300, bg = "white")
 
 # 3d. Number of items per week (mean per transect), per site
-weekly <- transects |>
+weekly <- between |>
   group_by(Date, Location) |>
   summarise(mean_items = mean(n_items),
             se_items   = sd(n_items) / sqrt(n()),
