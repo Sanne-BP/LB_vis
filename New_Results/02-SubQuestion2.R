@@ -433,44 +433,6 @@ comp_plot |>
 
 
 
-#TRYING SOMETHING NEW:
-comp_data <- sq2_long |>
-  group_by(Treatment_pooled, Species) |>
-  summarise(mean_count = mean(Count), .groups = "drop")
-
-top26 <- comp_data |>
-  group_by(Species) |>
-  summarise(total = sum(mean_count), .groups = "drop") |>
-  slice_max(total, n = 26, with_ties = FALSE) |>
-  pull(Species)
-top26
-
-#Group the rest as "Other"; stack order follows the lookup table (grouped by feeding mode)
-comp_plot <- comp_data |>
-  filter(mean_count > 0) |>
-  mutate(Species = factor(Species,
-                          levels = c(intersect(species_info$Species, unique(Species)),
-                                     "Unidentified")))
-
-comp_colours <- c(species_colours, Unidentified = "grey70")
-comp_labels  <- c(species_labels,  Unidentified = "Unidentified")
-
-p_comp <- ggplot(comp_plot, aes(x = Treatment_pooled, y = mean_count, fill = Species)) +
-  geom_col(width = 0.9) +
-  scale_fill_manual(values = comp_colours, labels = comp_labels) +
-  guides(fill = guide_legend(ncol = 2)) +
-  scale_x_discrete(labels = treatment_labels) +
-  scale_y_continuous(expand = expansion(mult = c(0, 0.02))) +
-  labs(title = "Species composition after installment of LB",
-       x = "Treatment", y = "Number of observations per video (mean)", fill = "Species") +
-  theme_bw() + text_theme +
-  theme(legend.text = element_text(face = "italic"))
-p_comp
-
-comp_plot |>
-  arrange(Treatment_pooled, desc(mean_count)) |>
-  mutate(mean_count = round(mean_count, 2)) |>
-  print(n = Inf)
 
 
 
@@ -500,32 +462,131 @@ sp_plot_vid <- sq2_long |>
   filter(Species %in% top_species) |>
   mutate(Species = factor(Species, levels = top_species))
 
-#Mean and SE over the videos per site
-sp_plot_mean <- sp_plot_vid |>
-  group_by(Treatment_pooled, Species) |>
-  summarise(mean_count = mean(Count),
-            se = sd(Count) / sqrt(n()),
-            .groups = "drop")
-
-p_species <- ggplot(sp_plot_mean, aes(x = Treatment_pooled, y = mean_count, fill = Treatment_pooled)) +
-  geom_col(width = 0.7, alpha = 0.6) +
-  geom_errorbar(aes(ymin = pmax(mean_count - se, 0), ymax = mean_count + se),
-                width = 0.2) +
-  geom_point(data = sp_plot_vid, aes(y = Count),
-             position = position_jitter(width = 0.1, height = 0, seed = 123),
+p_species <- ggplot(sp_plot_vid, aes(x = Treatment_pooled, y = Count, fill = Treatment_pooled)) +
+  geom_boxplot(alpha = 0.6, outlier.shape = NA) +
+  geom_point(position = position_jitter(width = 0.1, height = 0, seed = 123),
              size = 1.8) +
   facet_wrap(~Species, scales = "free_y", ncol = 4,
              labeller = as_labeller(species_labels)) +
-  scale_fill_viridis_d(option = "viridis") +   #swap for your treatment palette if you use one
+  scale_fill_manual(values = treatment_colors) +
   scale_x_discrete(labels = treatment_labels) +
-  scale_y_continuous(expand = expansion(mult = c(0, 0.05))) +
+  expand_limits(y = 0) +
   labs(title = "Number of observations per species after installment of LB",
        x = "Treatment",
-       y = "Number of observations per video (mean ± SE)") +
+       y = "Number of observations per video") +
   theme_bw() + text_theme +
   theme(strip.text = element_text(face = "italic"),
+        axis.text.x = element_text(angle = 45, hjust = 1),   #stops RS2/MOD labels overlapping
         legend.position = "none")
 p_species
+
+ggsave("New_Plots/SQ2_species_observations.png", p_species,
+       width = 12, height = 6, dpi = 300, bg = "white")
+
+#STATISTICS:
+library(glmmTMB)
+library(DHARMa)
+library(emmeans)
+
+#Number of species to test: 8, matching the 8 panels of the figure (same as SQ1).
+#Species absent from one or more sites are flagged in "zero_sites" (see NOTE above).
+n_test <- 8
+test_species <- top_species[1:n_test]
+test_species
+
+sp_long2 <- sq2_long |>
+  filter(Species %in% test_species) |>
+  mutate(Treatment_pooled = relevel(factor(Treatment_pooled), ref = "Modified"))
+
+set.seed(123)  #for reproducible DHARMa residuals
+sp_models2    <- list()
+sp_results2   <- list()
+sp_contrasts2 <- list()
+
+for (sp in test_species) {
+  d <- filter(sp_long2, Species == sp)
+
+  #sites where the species was never observed
+  zero_sites <- d |>
+    group_by(Treatment_pooled) |>
+    summarise(total = sum(Count), .groups = "drop") |>
+    filter(total == 0) |>
+    pull(Treatment_pooled) |>
+    as.character()
+
+  m <- tryCatch(
+    glmmTMB(Count ~ Treatment_pooled, family = nbinom2, data = d),
+    error = function(e) { message(sp, ": ", conditionMessage(e)); NULL })
+
+  if (is.null(m)) {
+    message(sp, ": model failed to fit")
+    sp_results2[[sp]] <- tibble(Species = sp, zero_sites = paste(zero_sites, collapse = ", "))
+    next
+  }
+  sp_models2[[sp]] <- m
+
+  #Assumption checks (DHARMa)
+  res  <- simulateResiduals(m, n = 1000, plot = FALSE)
+  par(mfrow = c(1, 2))
+  plotQQunif(res, main = sp)
+  plotResiduals(res, form = d$Treatment_pooled, main = sp)
+  par(mfrow = c(1, 1))
+  disp <- testDispersion(res, plot = FALSE)
+  zinf <- testZeroInflation(res, plot = FALSE)
+
+  #Overall site effect
+  lrt <- drop1(m, test = "Chisq")
+
+  sp_results2[[sp]] <- tibble(
+    Species    = sp,
+    chisq      = lrt["Treatment_pooled", "LRT"],
+    df         = lrt["Treatment_pooled", "Df"],
+    p          = lrt["Treatment_pooled", "Pr(>Chi)"],
+    converged  = m$fit$convergence == 0 && isTRUE(m$sdr$pdHess),
+    disp_p     = disp$p.value,
+    zeroinf_p  = zinf$p.value,
+    zero_sites = paste(zero_sites, collapse = ", ")
+  )
+
+  #MOD vs each other site (ratio = other site / MOD, on the response scale)
+  emm <- emmeans(m, ~ Treatment_pooled, type = "response")
+  sp_contrasts2[[sp]] <- contrast(emm, method = "trt.vs.ctrl", ref = "Modified") |>
+    summary(infer = TRUE) |>
+    as_tibble() |>
+    mutate(Species = sp, .before = 1)
+}
+
+#Overall table, Holm-adjusted across the tested species
+sp_table2 <- bind_rows(sp_results2) |>
+  mutate(p_adj = p.adjust(p, method = "holm"),
+         across(where(is.numeric), ~ round(.x, 3)))
+print(sp_table2, width = Inf)
+
+#Pairwise table (Dunnett-adjusted within species by emmeans)
+sp_contrast_table2 <- bind_rows(sp_contrasts2) |>
+  mutate(across(where(is.numeric), ~ round(.x, 3)))
+print(sp_contrast_table2, n = Inf)
+
+#Means per site (for the text / a supplementary table)
+sp_long2 |>
+  group_by(Species, Treatment_pooled) |>
+  summarise(mean = round(mean(Count), 2), n = n(), .groups = "drop") |>
+  pivot_wider(names_from = Treatment_pooled, values_from = c(mean, n)) |>
+  print(n = Inf)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -570,7 +631,7 @@ p_guild_share <- ggplot(guild_share, aes(x = Treatment_pooled, y = share, fill =
        fill = "Feeding mode") +
   theme_bw() + text_theme
 
-ggsave("New_Plots/SQ2_guidlshare.png", width = 7, height = 5, dpi = 300, bg = "white")
+ggsave("New_Plots/SQ2_guidlshare.png", width = 7, height = 4, dpi = 300, bg = "white")
 
 p_guild_box <- ggplot(guild_data, aes(x = Treatment_pooled, y = Observations, fill = Treatment_pooled)) +
   geom_boxplot(alpha = 0.6) +
