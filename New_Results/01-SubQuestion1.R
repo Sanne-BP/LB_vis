@@ -519,6 +519,208 @@ comp_data |>
 
 
 
+##################################################################
+
+comp_data <- mod_data_post |>
+  pivot_longer(any_of(c(species_info$Species, "Unidentified")),
+               names_to = "Species", values_to = "Count") |>
+  filter(Species != "Ambassis.spp") |>
+  # 1. mean count per video, per day
+  group_by(Treatment, Date, Species) |>
+  summarise(day_mean = mean(Count, na.rm = TRUE), .groups = "drop") |>
+  # 2. mean over the days
+  group_by(Treatment, Species) |>
+  summarise(mean_count = mean(day_mean), .groups = "drop")
+
+#Check: which species were (not) observed at the modified site (total = 0 -> not in the plot)
+comp_data |>
+  group_by(Species) |>
+  summarise(total = sum(mean_count), .groups = "drop") |>
+  arrange(total) |>
+  print(n = Inf)
+
+#Stack order follows the lookup table (grouped by feeding mode), Unidentified last
+comp_plot <- comp_data |>
+  filter(mean_count > 0) |>
+  mutate(Species = factor(Species,
+                          levels = c(intersect(species_info$Species, unique(Species)),
+                                     "Unidentified")))
+
+comp_colours <- c(species_colours, Unidentified = "grey70")
+comp_labels  <- c(species_labels,  Unidentified = "Unidentified")
+
+p_comp <- ggplot(comp_plot, aes(x = Treatment, y = mean_count, fill = Species)) +
+  geom_col(width = 0.9) +
+  scale_fill_manual(values = comp_colours, labels = comp_labels) +
+  guides(fill = guide_legend(ncol = 2)) +
+  scale_x_discrete(labels = treatment_labels) +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.02))) +
+  labs(title = "Species composition within the modified site",
+       x = "Treatment", y = "Number of observations per video (mean)", fill = "Species") +
+  theme_bw() + text_theme +
+  theme(legend.text = element_text(face = "italic"))
+p_comp
+
+#Table of the values shown in the plot
+comp_plot |>
+  arrange(Treatment, desc(mean_count)) |>
+  mutate(mean_count = round(mean_count, 2)) |>
+  print(n = Inf)
+
+ggsave("New_Plots/SQ1_species_composition.png", p_comp,
+       width = 10, height = 7, dpi = 300, bg = "white")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+##################################################################
+#INSTEAD: focus on individual species + NEW FOR REPORT+ STATS BELOW
+
+# 1. mean count per video, per day, per species
+sp_day <- mod_data_post |>
+  pivot_longer(any_of(species_info$Species),
+               names_to = "Species", values_to = "Count") |>
+  group_by(Treatment, Date, Species) |>
+  summarise(day_mean = mean(Count, na.rm = TRUE), .groups = "drop")
+
+# 2. the most observed species at the modified site (summed over MOD-ER and MOD-LB)
+n_top <- 8
+top_species <- sp_day |>
+  group_by(Species) |>
+  summarise(total = sum(day_mean), .groups = "drop") |>
+  slice_max(total, n = n_top, with_ties = FALSE) |>
+  pull(Species)
+top_species
+
+#keep only the top species; panels ordered from most to least observed
+sp_plot_day <- sp_day |>
+  filter(Species %in% top_species) |>
+  mutate(Species = factor(Species, levels = top_species))
+
+# 3. boxplots per species
+ggplot(sp_plot_day, aes(x = Treatment, y = day_mean, fill = Treatment)) +
+  geom_boxplot(alpha = 0.6, outlier.shape = NA) +
+  geom_point(position = position_jitter(width = 0.1, height = 0, seed = 123),
+             size = 1.8) +
+  facet_wrap(~Species, scales = "free_y", ncol = 4,
+             labeller = as_labeller(species_labels)) +
+  scale_fill_manual(values = treatment_colors) +
+  scale_x_discrete(labels = treatment_labels) +
+  expand_limits(y = 0) +
+  labs(title = "Number of observations per species within the modified site",
+       x = "Treatment",
+       y = "Number of observations per video (day mean)") +
+  theme_bw() + text_theme +
+  theme(strip.text = element_text(face = "italic"),
+        legend.position = "none")
+
+ggsave("New_Plots/SQ1_species_observations.png", width = 10, height = 5.5, dpi = 300, bg = "white")
+
+
+#stats
+library(glmmTMB)
+library(DHARMa)
+
+#Number of species to test: the top 5 are common enough to model;
+#the remaining top-8 species have ~1 observation per video (set to 8 to try them anyway)
+n_test <- 8
+test_species <- top_species[1:n_test]
+test_species
+
+#Long format: one row per video per species
+sp_long <- mod_data_post |>
+  pivot_longer(all_of(test_species), names_to = "Species", values_to = "Count") |>
+  mutate(Treatment = factor(Treatment,
+                            levels = c("Modified Existing Revetment", "Modified Living Boulder")),
+         Date = factor(Date))
+
+set.seed(123)  #for reproducible DHARMa residuals
+sp_models  <- list()
+sp_results <- list()
+
+for (sp in test_species) {
+  d <- filter(sp_long, Species == sp)
+
+  m <- tryCatch(
+    glmmTMB(Count ~ Treatment + (1 | Date), family = nbinom2, data = d),
+    error = function(e) NULL)
+
+  if (is.null(m)) {
+    message(sp, ": model failed to fit")
+    sp_results[[sp]] <- tibble(Species = sp)
+    next
+  }
+  sp_models[[sp]] <- m
+
+  #Assumption checks (DHARMa): residual plot per species + dispersion and zero-inflation tests
+  res <- simulateResiduals(m, n = 1000, plot = FALSE)
+  par(mfrow = c(1, 2))
+  plotQQunif(res, main = sp)
+  plotResiduals(res, form = d$Treatment, main = sp)
+  par(mfrow = c(1, 1))
+  disp <- testDispersion(res, plot = FALSE)
+  zinf <- testZeroInflation(res, plot = FALSE)
+
+  #Likelihood-ratio test for Treatment
+  lrt <- drop1(m, test = "Chisq")
+
+  #Effect size: fold change MOD-LB vs MOD-ER (Wald 95% CI)
+  cf <- coef(summary(m))$cond
+  est <- cf[2, "Estimate"]
+  se  <- cf[2, "Std. Error"]
+
+  means <- d |>
+    group_by(Treatment) |>
+    summarise(mean = mean(Count), .groups = "drop")
+
+  sp_results[[sp]] <- tibble(
+    Species     = sp,
+    mean_ER     = means$mean[means$Treatment == "Modified Existing Revetment"],
+    mean_LB     = means$mean[means$Treatment == "Modified Living Boulder"],
+    fold_LB_ER  = exp(est),
+    CI_low      = exp(est - 1.96 * se),
+    CI_high     = exp(est + 1.96 * se),
+    chisq       = lrt["Treatment", "LRT"],
+    df          = lrt["Treatment", "Df"],
+    p           = lrt["Treatment", "Pr(>Chi)"],
+    converged   = m$fit$convergence == 0 && isTRUE(m$sdr$pdHess),
+    disp_p      = disp$p.value,
+    zeroinf_p   = zinf$p.value
+  )
+}
+
+#Results table, Holm-adjusted p-values across the tested species
+sp_table <- bind_rows(sp_results) |>
+  mutate(p_adj = p.adjust(p, method = "holm"),
+         across(where(is.numeric), ~ round(.x, 3)))
+
+sp_table
+print(sp_table, width = Inf)
+#converged = FALSE -> estimates for that species are unreliable (too few non-zero counts)
+#disp_p / zeroinf_p < 0.05 -> assumption problem for that species, check its DHARMa plot
+
+#Random-effect check: a Date variance of ~0 means days hardly differ (fine, model still valid)
+lapply(sp_models, function(m) VarCorr(m)$cond$Date)
+
+
+
+
+
+
+
+
+
 
 
 
@@ -573,6 +775,154 @@ ggsave("plots/SQ3_feedfreq.png", width = 7, height = 4, dpi = 300, bg = "white")
 
 
 
+
+
+
+
+
+#TRYING SOMETHING NEW FOR SPECIES COMPOSITION:
+
+#Replaces the old "share of observations" composition plot.
+#Number of observations per species for the most observed species, MOD-ER vs MOD-LB.
+#Per-day averaged like the other plots: mean count per video per day -> mean (± SE) over the days.
+#Bars = mean over the days, error bars = SE over the days, points = the individual day means.
+
+#(Keep your species_info / species_colours / species_labels lookup table above this as it is:
+# it is still used for the feeding-mode plot and for the italic species names below.)
+
+#CHECK: every species column in mod_data_post should be in the lookup table (should return character(0))
+setdiff(sp_cols, species_info$Species)
+
+# 1. mean count per video, per day, per species
+sp_day <- mod_data_post |>
+  pivot_longer(any_of(species_info$Species),
+               names_to = "Species", values_to = "Count") |>
+  group_by(Treatment, Date, Species) |>
+  summarise(day_mean = mean(Count, na.rm = TRUE), .groups = "drop")
+
+# 2. the most observed species at the modified site (summed over MOD-ER and MOD-LB)
+n_top <- 8
+top_species <- sp_day |>
+  group_by(Species) |>
+  summarise(total = sum(day_mean), .groups = "drop") |>
+  slice_max(total, n = n_top, with_ties = FALSE) |>
+  pull(Species)
+top_species
+
+#keep only the top species; panels ordered from most to least observed
+sp_plot_day <- sp_day |>
+  filter(Species %in% top_species) |>
+  mutate(Species = factor(Species, levels = top_species))
+
+# 3. mean and SE over the days
+sp_plot_mean <- sp_plot_day |>
+  group_by(Treatment, Species) |>
+  summarise(mean_count = mean(day_mean),
+            se = sd(day_mean) / sqrt(n()),
+            .groups = "drop")
+
+ggplot(sp_plot_mean, aes(x = Treatment, y = mean_count, fill = Treatment)) +
+  geom_col(width = 0.7, alpha = 0.6) +
+  geom_errorbar(aes(ymin = pmax(mean_count - se, 0), ymax = mean_count + se),
+                width = 0.2) +
+  geom_point(data = sp_plot_day, aes(y = day_mean),
+             position = position_jitter(width = 0.1, height = 0, seed = 123),
+             size = 1.8) +
+  facet_wrap(~Species, scales = "free_y", ncol = 4,
+             labeller = as_labeller(species_labels)) +
+  scale_fill_viridis_d(option = "viridis") +   #swap for your treatment palette if you use one
+  scale_x_discrete(labels = treatment_labels) +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.05))) +
+  labs(title = "Number of observations per species within the modified site",
+       x = "Treatment",
+       y = "Number of observations per video (mean ± SE)") +
+  theme_bw() + text_theme +
+  theme(strip.text = element_text(face = "italic"),
+        legend.position = "none")
+
+ggsave("New_Plots/SQ1_species_observations.png", width = 10, height = 5.5, dpi = 300, bg = "white")
+
+
+
+library(glmmTMB)
+library(DHARMa)
+
+#Number of species to test: the top 5 are common enough to model;
+#the remaining top-8 species have ~1 observation per video (set to 8 to try them anyway)
+n_test <- 8
+test_species <- top_species[1:n_test]
+test_species
+
+#Long format: one row per video per species
+sp_long <- mod_data_post |>
+  pivot_longer(all_of(test_species), names_to = "Species", values_to = "Count") |>
+  mutate(Treatment = factor(Treatment,
+                            levels = c("Modified Existing Revetment", "Modified Living Boulder")),
+         Date = factor(Date))
+
+set.seed(123)  #for reproducible DHARMa residuals
+sp_models  <- list()
+sp_results <- list()
+
+for (sp in test_species) {
+  d <- filter(sp_long, Species == sp)
+
+  m <- tryCatch(
+    glmmTMB(Count ~ Treatment + (1 | Date), family = nbinom2, data = d),
+    error = function(e) NULL)
+
+  if (is.null(m)) {
+    message(sp, ": model failed to fit")
+    sp_results[[sp]] <- tibble(Species = sp)
+    next
+  }
+  sp_models[[sp]] <- m
+
+  #Assumption checks (DHARMa): residual plot per species + dispersion and zero-inflation tests
+  res <- simulateResiduals(m, n = 1000, plot = FALSE)
+  plot(res, title = sp)
+  disp <- testDispersion(res, plot = FALSE)
+  zinf <- testZeroInflation(res, plot = FALSE)
+
+  #Likelihood-ratio test for Treatment
+  lrt <- drop1(m, test = "Chisq")
+
+  #Effect size: fold change MOD-LB vs MOD-ER (Wald 95% CI)
+  cf <- coef(summary(m))$cond
+  est <- cf[2, "Estimate"]
+  se  <- cf[2, "Std. Error"]
+
+  means <- d |>
+    group_by(Treatment) |>
+    summarise(mean = mean(Count), .groups = "drop")
+
+  sp_results[[sp]] <- tibble(
+    Species     = sp,
+    mean_ER     = means$mean[means$Treatment == "Modified Existing Revetment"],
+    mean_LB     = means$mean[means$Treatment == "Modified Living Boulder"],
+    fold_LB_ER  = exp(est),
+    CI_low      = exp(est - 1.96 * se),
+    CI_high     = exp(est + 1.96 * se),
+    chisq       = lrt["Treatment", "LRT"],
+    df          = lrt["Treatment", "Df"],
+    p           = lrt["Treatment", "Pr(>Chi)"],
+    converged   = m$fit$convergence == 0 && isTRUE(m$sdr$pdHess),
+    disp_p      = disp$p.value,
+    zeroinf_p   = zinf$p.value
+  )
+}
+
+#Results table, Holm-adjusted p-values across the tested species
+sp_table <- bind_rows(sp_results) |>
+  mutate(p_adj = p.adjust(p, method = "holm"),
+         across(where(is.numeric), ~ round(.x, 3)))
+
+sp_table
+#converged = FALSE -> estimates for that species are unreliable (too few non-zero counts)
+#disp_p / zeroinf_p < 0.05 -> assumption problem for that species, check its DHARMa plot
+
+#Random-effect check: a Date variance of ~0 means days hardly differ (fine, model still valid)
+lapply(sp_models, function(m) VarCorr(m)$cond$Date)
 
 
 
